@@ -19,16 +19,18 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<GameSessionService>();
 
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("frontend", policy =>
     {
         policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "https://tictac-arena-client.vercel.app"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials()
-            .SetIsOriginAllowed(_ => true);
+            .AllowCredentials();
     });
 });
 
@@ -50,5 +52,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
+
+var scope = app.Services.CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+db.Database.Migrate();
+
 
 app.Run();
